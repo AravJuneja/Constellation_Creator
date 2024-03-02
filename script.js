@@ -1,27 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Constellation Creator</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: rgb(0, 0, 0);
-        }
-        canvas {
-            border: 1px solid white;
-        }
-    </style>
-</head>
-<body>
-    <canvas id="myCanvas" width="500" height="500"></canvas>
-    <script>
+
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -47,21 +24,10 @@
             }
         }
 
-        function printToConsole(points) {
-            console.log("Generated Constellation Points:");
-            for (const point of points) {
-                console.log(`(${point.x}, ${point.y})`);
-            }
-        }
-
         function main() {
             const numPoints = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
             const points = generatePoints(numPoints);
             drawPoints(points);
-            printToConsole(points);
         }
 
         main();
-    </script>
-</body>
-</html>
