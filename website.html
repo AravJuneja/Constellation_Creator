@@ -21,6 +21,7 @@
 </head>
 <body>
     <canvas id="myCanvas" width="500" height="500"></canvas>
+    <button onclick="saveToCSV()">Save to CSV</button>
     <script>
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
@@ -54,12 +55,96 @@
             }
         }
 
-        function main() {
+        function pointsToCSV(points) {
+            return points.map(point => `${point.x},${point.y}`).join('\n');
+        }
+
+        function downloadCSV(csvData, filename) {
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        function saveToCSV() {
             const numPoints = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
             const points = generatePoints(numPoints);
             drawPoints(points);
             printToConsole(points);
+
+            const csvData = pointsToCSV(points);
+            const filename = 'constellation_points.csv';
+            downloadCSV(csvData, filename);
         }
+        function saveToCSV() {
+            const numPoints = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
+            const points = generatePoints(numPoints);
+            drawPoints(points);
+
+            const csvData = pointsToCSV(points);
+
+            // Make an AJAX request to the server-side script
+            fetch('http://localhost:5001/append_points', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(csvData.split('\n')[1].split(',')), // Extracting the data row
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data saved:', data);
+            })
+            .catch(error => {
+                console.error('Error saving data:', error);
+            });
+        }
+        function main() {
+    // Retrieve existing data from local storage
+    const existingData = localStorage.getItem('constellation_points') || '';
+
+    // Parse the existing CSV data into an array of points
+    const existingPoints = existingData.split('\n').map(line => {
+        const [x, y] = line.split(',').map(Number);
+        return { x, y };
+    });
+
+    // Generate new points
+    const numPoints = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
+    const newPoints = generatePoints(numPoints);
+
+    // Combine existing and new points
+    const allPoints = existingPoints.concat(newPoints);
+
+    // Draw all points on the canvas
+    drawPoints(allPoints);
+
+    // Convert all points to CSV format
+    const csvData = pointsToCSV(allPoints);
+
+    // Save the combined CSV data to local storage
+    saveToLocalStorage(csvData);
+
+    // Make an AJAX request to the server-side script to append the new points
+    fetch('http://localhost:5001/append_points', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(allPoints),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Data saved:', data);
+    })
+    .catch(error => {
+        console.error('Error saving data:', error);
+    });
+}
+
+main(); // Call main() when the page loads
+
 
         main();
     </script>
