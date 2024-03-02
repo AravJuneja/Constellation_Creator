@@ -1,10 +1,10 @@
-//const numPoints = Math.floor(Math.random() * (15)) + 5;
-//const points = generatePoints(numPoints);
-//drawPoints(points);
-
 const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
+        let startPoint = { x: 0, y: 0 };
+        let endPoint = { x: 0, y: 0 };
+        let drawing = false;
         let points = [];
+        let lines = [];
 
         function generatePoints(numPoints) {
             const points = [];
@@ -13,121 +13,97 @@ const canvas = document.getElementById('myCanvas');
             for (let i = 0; i < numPoints; i++) { 
                 const x = Math.random() * (canvas.width - 2 * screenMarginX) + screenMarginX;
                 const y = Math.random() * (canvas.height - 2 * screenMarginY) + screenMarginY;
+
                 points.push({ x, y });
             }
             return points;
         }
 
         function drawPoints(points) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
             for (const point of points) {
+                const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, 7); // Adjust the last parameter to control the size of the gradient
+                gradient.addColorStop(0, 'white'); // Transparent at center
+                gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)'); // Semi-transparent white
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); // Transparent at edges
+
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 2, 0, Math.PI * 2); 
+                ctx.arc(point.x, point.y, 10, 0, Math.PI * 2); // Increase the radius of the circle to encompass the gradient
+                ctx.fillStyle = gradient;
                 ctx.fill();
             }
         }
 
-        function drawLine(startX, startY, endX, endY) {
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = 'white';
-            ctx.stroke();
+        function drawLines(lines) {
+            for (const line of lines) {
+                const { startX, startY, endX, endY } = line;
+                ctx.beginPath();
+                const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+                gradient.addColorStop("0", "black");
+                gradient.addColorStop("0.2", "yellow");
+                gradient.addColorStop("0.8", "yellow");
+                gradient.addColorStop("1", "black");
+
+                ctx.strokeStyle = gradient;
+                
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         }
 
         canvas.addEventListener('mousedown', function(event) {
             const rect = canvas.getBoundingClientRect();
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
-            points.push({x: mouseX, y: mouseY});
-            if (points.length === 2) {
-                drawLine(points[0].x, points[0].y, points[1].x, points[1].y);
-                points = [];
+            
+            if (!drawing) {
+                startPoint = { x: mouseX, y: mouseY };
+                endPoint = { x: mouseX, y: mouseY };
+                drawing = true;
+            } else {
+                lines.push({ startX: startPoint.x, startY: startPoint.y, endX: endPoint.x, endY: endPoint.y });
+                drawing = false;
             }
         });
 
-        function populateDropdown(options) {
-            const dropdown = document.getElementById('dropdown');
-            dropdown.innerHTML = ''; // Clear existing options
-            for (let i = 0; i < options.length; i++) {
-                const option = document.createElement('option');
-                option.value = i + 1;
-                option.text = i + 1;
-                dropdown.appendChild(option);
+        canvas.addEventListener('mousemove', function(event) {
+            if (drawing) {
+                const rect = canvas.getBoundingClientRect();
+                endPoint.x = event.clientX - rect.left;
+                endPoint.y = event.clientY - rect.top;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawPoints(points);
+                drawLines(lines);
+                drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
             }
-        }
+        });
 
-        function grabRowFromCSV(index) {
-            fetch('const_data.csv')
-                .then(response => response.text())
-                .then(data => {
-                    const rows = data.trim().split('\n');
-                    if (index >= 1 && index <= rows.length) {
-                        const row = rows[index - 1];
-                        const columns = row.split(',');
-                        const columnList = columns.map(column => column.trim());
-                        //console.log(columnList);
-                    } else {
-                        console.error('Invalid index');
-                    }
-                })
-                .catch(error => console.error('Error fetching CSV:', error));
-        }
+        function drawLine(startX, startY, endX, endY) {
+            ctx.beginPath();
+            const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+            gradient.addColorStop("0", "black");
+            gradient.addColorStop("0.2", "yellow");
+            gradient.addColorStop("0.8", "yellow");
+            gradient.addColorStop("1", "black");
 
-        function handleConfirm() {
-            const list = grabRowFromCSV(dropdown.value);
-            console.log(list)
-        }
-
-        function convertToTuples(list) {
-            const tupleList = [];
-        
-            for (const item of list) {
-                const [x, y] = item.split(',').map(coord => parseFloat(coord.trim()));
-                tupleList.push([x, y]);
-            }
-        
-            return tupleList;
-        }
-
-        function drawPointsOnCanvas(tupleList) {
-            const canvas = document.getElementById('myCanvas');
-            const ctx = canvas.getContext('2d');
-
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw a point for each tuple
-            tupleList.forEach(tuple => {
-                const [x, y] = tuple;
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = 'blue'; // Set the point color
-                ctx.fill();
-                ctx.stroke();
-            });
+            ctx.strokeStyle = gradient;
+            
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
 
         function main() {
-            fetch('const_data.csv')
-                .then(response => response.text())
-                .then(data => {
-                    // Split CSV data by lines to count rows
-                    const rows = data.trim().split('\n');
-                    const numOptions = rows.length;
-                    populateDropdown(new Array(numOptions).fill());
-                })
-                .catch(error => console.error('Error fetching CSV:', error));
+            const numPoints = Math.floor(Math.random() * (7)) + 5;
+            points = generatePoints(numPoints);
+            drawPoints(points);
+            document.getElementById("Submit").addEventListener("click", function(){
+                location.reload();
+              });
 
-            const dropdown = document.getElementById('dropdown');
 
-            
-
-            document.getElementById('confirm').addEventListener('click', handleConfirm);
-            
-            
-       
-         }
+        }
 
         main();
