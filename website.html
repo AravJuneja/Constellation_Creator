@@ -21,7 +21,7 @@
 </head>
 <body>
     <canvas id="myCanvas" width="500" height="500"></canvas>
-    <script > 
+    <script>
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -73,6 +73,7 @@
             const numPoints = Math.floor(Math.random() * (15)) + 5;
             const points = generatePoints(numPoints);
             drawPoints(points);
+            printToConsole(points);
         }
 
         main();
