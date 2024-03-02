@@ -35,8 +35,9 @@
             const screenMarginX = canvas.width / 4;
             const screenMarginY = canvas.height / 4;
             for (let i = 0; i < numPoints; i++) { 
-                const x = Math.random() * (canvas.width ) ;
-                const y = Math.random() * (canvas.height );
+                const x = Math.random() * (canvas.width - 2 * screenMarginX) + screenMarginX;
+                const y = Math.random() * (canvas.height - 2 * screenMarginY) + screenMarginY;
+
                 points.push({ x, y });
             }
             return points;
@@ -119,7 +120,7 @@
         }
 
         function main() {
-            const numPoints = Math.floor(Math.random() * (15)) + 5;
+            const numPoints = Math.floor(Math.random() * (7)) + 5;
             points = generatePoints(numPoints);
             drawPoints(points);
         }
